@@ -5,3 +5,9 @@ Falchion container requires JDK9 because it's using SO_REUSEPORT flag. JDK9 supp
 
 When the container has started, it forks JVM processes until the given pool size.
 If the container catch a HUP signal, it creates a new JVM processes and kill old processes.
+
+## REST　API
+
+![api](http://i.imgur.com/iIRC5Ix.png)
+
+Falchion container provides HTTP APIs for getting the information of JVM processes or refreshing jvm processes.
