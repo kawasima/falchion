@@ -11,9 +11,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
+import java.net.URL;
 import java.nio.channels.ServerSocketChannel;
 import java.util.UUID;
 
@@ -60,8 +64,25 @@ public class JettyRunner {
                 baseRequest.setHandled(true);
             }
         });
+        server.setStopAtShutdown(true);
+        server.setStopTimeout(3000);
         server.addConnector(connector);
         server.start();
+
+        String vmName= ManagementFactory.getRuntimeMXBean().getName();
+        long pid = Long.valueOf(vmName.split("@")[0]);
+        HttpURLConnection conn = ((HttpURLConnection) new URL("http://localhost:44010/jvm/" + pid).openConnection());
+        try {
+            conn.setRequestMethod("POST");
+            conn.setUseCaches(false);
+            int status = conn.getResponseCode();
+            if (status != 204) {
+                server.stop();
+            }
+        } finally {
+            conn.disconnect();
+        }
+
         server.join();
     }
 }

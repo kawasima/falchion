@@ -3,6 +3,7 @@ package net.unit8.falchion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
@@ -65,13 +66,20 @@ public class JvmPool {
         }
     }
 
-    public void refresh() {
-        Set<String> oldProcessIds = new HashSet<>(processes.keySet());
-        JvmProcess process = create();
-        try { Thread.sleep(3000); } catch (InterruptedException ex) {}
-        for (String id : oldProcessIds) {
-            LOG.info("cancel process id=" + id);
-            processes.get(id).getFuture().cancel(true);
+    public void refresh() throws IOException {
+        Set<JvmProcess> oldProcesses = processes.values().stream()
+                .map(ProcessHolder::getProcess)
+                .collect(Collectors.toSet());
+
+        for (JvmProcess oldProcess : oldProcesses) {
+            try {
+                JvmProcess process = create();
+                process.waitForReady().get();
+            } catch (Exception e) {
+                LOG.warn("fail to create a new process");
+                throw new IOException(e);
+            }
+            oldProcess.kill();
         }
     }
 
@@ -90,6 +98,18 @@ public class JvmPool {
 
     public void info() {
         LOG.info("Pool Size=" + processes.size());
+    }
+
+    public JvmProcess getProcess(String id) {
+        return processes.get(id).getProcess();
+    }
+
+    public JvmProcess getProcessByPid(long pid) {
+        return processes.values().stream()
+                .map(ProcessHolder::getProcess)
+                .filter(p -> p.getPid() == pid)
+                .findFirst()
+                .orElse(null);
     }
 
     static class ProcessHolder {

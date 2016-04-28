@@ -1,5 +1,7 @@
 package net.unit8.falchion;
 
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
@@ -19,15 +21,9 @@ public class Container {
     private static final Logger LOG = LoggerFactory.getLogger(Container.class);
     private int poolSize;
     private JvmPool pool;
-    private static final Signal HUP  = new Signal("HUP");
-    private static final Signal TERM = new Signal("TERM");
-    private static final Signal USR1 = new Signal("USR1");
 
     public Container(int poolSize) {
         this.poolSize = poolSize;
-        Signal.handle(TERM, signal -> pool.shutdown());
-        Signal.handle(HUP, signal -> pool.refresh());
-        Signal.handle(USR1, signal -> pool.info());
     }
 
     private URI toURI(URL url) {
@@ -55,12 +51,5 @@ public class Container {
 
     public JvmPool getPool() {
         return pool;
-    }
-
-    public static void main(String[] args) {
-        Container container = new Container(1);
-        ApiServer apiServer = new ApiServer(container);
-        apiServer.start();
-        container.start(args[0]);
     }
 }

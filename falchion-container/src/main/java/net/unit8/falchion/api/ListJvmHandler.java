@@ -12,23 +12,19 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author kawasima
  */
-public class ListJvmHandler implements HttpHandler {
-    private Container container;
-
+public class ListJvmHandler extends AbstractApi {
     public ListJvmHandler(Container container) {
-        this.container = container;
+        super(container);
     }
 
     @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
+    public void handle(HttpExchange exchange) throws IOException {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        container.getPool().getActiveProcesses().stream().forEach(p ->
+        getContainer().getPool().getActiveProcesses().stream().forEach(p ->
                 arrayBuilder.add(Json.createObjectBuilder()
                         .add("id", p.getId())
                         .add("pid", p.getPid())));
 
-        String body = arrayBuilder.build().toString();
-        httpExchange.sendResponseHeaders(200, body.length());
-        httpExchange.getResponseBody().write(body.getBytes(StandardCharsets.ISO_8859_1));
+        sendJson(exchange, arrayBuilder.build());
     }
 }
