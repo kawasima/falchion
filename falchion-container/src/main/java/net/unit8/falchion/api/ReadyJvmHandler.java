@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * @author kawasima
  */
 public class ReadyJvmHandler extends AbstractApi {
-    private static final Pattern RE_ID = Pattern.compile("/([a-zA-Z0-9]+)$");
+    private static final Pattern RE_ID = Pattern.compile("/([a-zA-Z0-9]+)/ready$");
 
     public ReadyJvmHandler(Container container) {
         super(container);
@@ -21,15 +21,19 @@ public class ReadyJvmHandler extends AbstractApi {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         Matcher m = RE_ID.matcher(exchange.getRequestURI().getPath());
-        if (m.find()) {
-            String id = m.group(1);
-            JvmProcess process = getContainer()
-                    .getPool()
-                    .getProcessByPid(Long.parseLong(id));
-            process.ready();
+        try {
+            if (m.find()) {
+                String id = m.group(1);
+                JvmProcess process = getContainer()
+                        .getPool()
+                        .getProcessByPid(Long.parseLong(id));
+                process.ready();
 
-            sendNoContent(exchange);
-        } else {
+                sendNoContent(exchange);
+            } else {
+                sendBadRequest(exchange, exchange.getRequestURI().getPath());
+            }
+        } catch (Exception ex) {
             sendBadRequest(exchange, exchange.getRequestURI().getPath());
         }
     }

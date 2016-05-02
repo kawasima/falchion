@@ -13,12 +13,16 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author kawasima
  */
 public class ApiServer {
     final HttpServer httpServer;
+    private ExecutorService executor;
+
     public ApiServer(Container container) {
         ListJvmHandler listJvmHandler = new ListJvmHandler(container);
         RefreshContainerHandler refreshContainerHandler = new RefreshContainerHandler(container);
@@ -26,11 +30,13 @@ public class ApiServer {
 
         WebRouter<HttpHandler> router = new WebRouter<>();
         router.get("/jvms", listJvmHandler::handle);
-        router.post("/jvm/{pid}", readyJvmHandler::handle);
+        router.post("/jvm/{pid}/ready", readyJvmHandler::handle);
         router.post("/container/refresh", refreshContainerHandler::handle);
 
+        executor = Executors.newFixedThreadPool(20);
         try {
-            httpServer = HttpServer.create(new InetSocketAddress(44010), 1);
+            httpServer = HttpServer.create(new InetSocketAddress(44010), 0);
+            httpServer.setExecutor(executor);
             httpServer.createContext("/", exchange -> {
                 try {
                     RoutingResult<HttpHandler> rr = router.match(
@@ -65,6 +71,7 @@ public class ApiServer {
     }
 
     public void stop() {
+        executor.shutdown();
         httpServer.stop(0);
     }
 }

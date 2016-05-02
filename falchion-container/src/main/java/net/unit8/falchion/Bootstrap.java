@@ -3,6 +3,7 @@ package net.unit8.falchion;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,14 @@ public class Bootstrap {
     private static final Signal HUP  = new Signal("HUP");
     private static final Signal TERM = new Signal("TERM");
 
+    @Option(name = "-cp", usage="Class search path of directories and zip/jar files",
+            metaVar = "CLASSPATH")
+    private String classpath;
+
+    @Option(name = "-p", usage = "size of JVM processes", metaVar = "SIZE")
+    private int poolSize = 1;
+
+
     @Argument
     private List<String> arguments = new ArrayList<>();
 
@@ -35,7 +44,7 @@ public class Bootstrap {
             return;
         }
 
-        Container container = new Container(1);
+        Container container = new Container(poolSize);
         ApiServer apiServer = new ApiServer(container);
 
         Signal.handle(TERM, signal -> {
@@ -51,8 +60,11 @@ public class Bootstrap {
         });
 
         apiServer.start();
-        container.start(args[0]);
-
+        if (classpath == null) {
+            container.start(args[0]);
+        } else {
+            container.start(args[0], classpath);
+        }
     }
 
     public static void main(String... args) {

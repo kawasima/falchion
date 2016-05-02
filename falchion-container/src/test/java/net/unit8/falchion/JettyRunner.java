@@ -14,10 +14,10 @@ import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Field;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
-import java.net.URL;
+import java.net.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.channels.ServerSocketChannel;
 import java.util.UUID;
 
@@ -71,16 +71,14 @@ public class JettyRunner {
 
         String vmName= ManagementFactory.getRuntimeMXBean().getName();
         long pid = Long.valueOf(vmName.split("@")[0]);
-        HttpURLConnection conn = ((HttpURLConnection) new URL("http://localhost:44010/jvm/" + pid).openConnection());
-        try {
-            conn.setRequestMethod("POST");
-            conn.setUseCaches(false);
-            int status = conn.getResponseCode();
-            if (status != 204) {
-                server.stop();
-            }
-        } finally {
-            conn.disconnect();
+        HttpResponse response = HttpRequest
+                .create(new URI("http://localhost:44010/jvm/" + pid + "/ready"))
+                .POST()
+                .response();
+        response.body(HttpResponse.ignoreBody());
+        int status = response.statusCode();
+        if (status != 204) {
+            server.stop();
         }
 
         server.join();

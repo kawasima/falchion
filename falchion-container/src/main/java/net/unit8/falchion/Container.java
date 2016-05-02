@@ -1,16 +1,10 @@
 package net.unit8.falchion;
 
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.Signal;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -26,27 +20,21 @@ public class Container {
         this.poolSize = poolSize;
     }
 
-    private URI toURI(URL url) {
-        try {
-            return url.toURI();
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     private String getClasspath() {
-        return Arrays.stream(URLClassLoader.class.cast(getClass().getClassLoader()).getURLs())
-                .filter(url -> url.getProtocol().equals("file"))
-                .map(this::toURI)
+        LOG.info(System.getProperty("java.class.path"));
+        return Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
                 .map(File::new)
                 .map(File::getAbsolutePath)
                 .collect(Collectors.joining(":"));
     }
 
-    public void start(final String mainClass) {
-        String classpath = getClasspath();
+    public void start(final String mainClass, String classpath) {
         pool = new JvmPool(poolSize, () -> new JvmProcess(mainClass, classpath));
-        pool.create();
+        pool.fill();
+    }
+
+    public void start(final String mainClass) {
+        start(mainClass, getClasspath());
     }
 
     public JvmPool getPool() {

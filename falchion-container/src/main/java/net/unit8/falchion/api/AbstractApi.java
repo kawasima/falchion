@@ -31,7 +31,7 @@ public abstract class AbstractApi implements HttpHandler {
     }
 
     protected void sendNoContent(HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(204, 0);
+        exchange.sendResponseHeaders(204, -1);
     }
 
     protected void sendBadRequest(HttpExchange exchange, String message) throws IOException {
