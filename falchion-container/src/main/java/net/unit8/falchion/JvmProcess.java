@@ -1,20 +1,27 @@
 package net.unit8.falchion;
 
+import net.unit8.falchion.monitor.JvmMonitor;
+import net.unit8.falchion.monitor.MonitorStat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Random;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author kawasima
  */
 public class JvmProcess implements Callable<JvmResult> {
     private static final Logger LOG = LoggerFactory.getLogger(JvmProcess.class);
+
+    private static final DateTimeFormatter fmtIO = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private String id;
     private long pid = -1;
@@ -23,6 +30,8 @@ public class JvmProcess implements Callable<JvmResult> {
     private transient Process process;
     private long startedAt;
     private CompletableFuture<Void> ready;
+
+    private Set<JvmMonitor> monitors;
 
     private static String ID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";
 
@@ -38,13 +47,14 @@ public class JvmProcess implements Callable<JvmResult> {
         this.id = generateId(5);
         this.mainClass = mainClass;
         this.ready = new CompletableFuture<>();
+        this.monitors = new HashSet<>();
+
         String javaHome = System.getProperty("java.home");
         LOG.info(javaHome + "/bin/java " + "-cp " + classpath + " " + mainClass);
         processBuilder = new ProcessBuilder()
                 .command(javaHome + "/bin/java",
                         "-cp", classpath,
-                        mainClass)
-                .inheritIO();
+                        mainClass);
     }
 
     public CompletableFuture<Void> waitForReady() {
@@ -61,22 +71,26 @@ public class JvmProcess implements Callable<JvmResult> {
             process = processBuilder.start();
             startedAt = System.currentTimeMillis();
             pid = process.getPid();
+            LOG.info("process started: id={}, pid={}", id, pid);
 
-            LOG.info("process started: id=" + id + ", pid=" + pid);
+            monitors.forEach(m -> m.start(this));
+
             return new JvmResult(id, pid, process.waitFor());
         } catch (InterruptedException ex) {
-            LOG.info("process interrupted: id=" + id + ", pid=" + pid);
+            LOG.info("process interrupted: id={}, pid={}", id, pid);
             try {
                 process.waitFor(3, TimeUnit.SECONDS);
             } catch (InterruptedException ignore) {
             }
             process.destroy();
-            LOG.info("process destroy: id=" + id + ", pid=" + pid);
+            LOG.info("process destroy: id={}, pid={}", id, pid);
             return new JvmResult(id, pid, -1);
         } catch (Exception ex) {
             LOG.error("Process start failure", ex);
             throw ex;
         } finally {
+            monitors.forEach(JvmMonitor::stop);
+
             if (process != null) {
                 process.getInputStream().close();
                 process.getOutputStream().close();
@@ -101,6 +115,10 @@ public class JvmProcess implements Callable<JvmResult> {
         return mainClass;
     }
 
+    public void addMonitor(JvmMonitor... monitors) {
+        this.monitors.addAll(Arrays.asList(monitors));
+    }
+
     public void kill() throws IOException {
         try {
             Process killProcess = new ProcessBuilder("kill", "-TERM", Long.toString(pid)).start();
@@ -112,4 +130,19 @@ public class JvmProcess implements Callable<JvmResult> {
         }
     }
 
+    public void setIoDir(File directory) {
+        if (process != null) {
+            throw new IllegalStateException("You should call setIoDir before starting process");
+        }
+        String prefix = fmtIO.format(LocalDateTime.now()) + "." + id;
+        processBuilder
+                .redirectError(new File(directory, prefix + ".err"))
+                .redirectOutput(new File(directory, prefix + ".out"));
+    }
+
+    public List<MonitorStat> getMonitorStats() {
+        return monitors.stream()
+                .map(JvmMonitor::getStat)
+                .collect(Collectors.toList());
+    }
 }

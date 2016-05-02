@@ -4,10 +4,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import me.geso.routes.RoutingResult;
 import me.geso.routes.WebRouter;
-import net.unit8.falchion.api.AbstractApi;
-import net.unit8.falchion.api.ListJvmHandler;
-import net.unit8.falchion.api.ReadyJvmHandler;
-import net.unit8.falchion.api.RefreshContainerHandler;
+import net.unit8.falchion.api.*;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -27,9 +24,11 @@ public class ApiServer {
         ListJvmHandler listJvmHandler = new ListJvmHandler(container);
         RefreshContainerHandler refreshContainerHandler = new RefreshContainerHandler(container);
         ReadyJvmHandler readyJvmHandler = new ReadyJvmHandler(container);
+        ShowJvmHandler showJvmHandler = new ShowJvmHandler(container);
 
         WebRouter<HttpHandler> router = new WebRouter<>();
         router.get("/jvms", listJvmHandler::handle);
+        router.get("/jvm/{id}", showJvmHandler::handle);
         router.post("/jvm/{pid}/ready", readyJvmHandler::handle);
         router.post("/container/refresh", refreshContainerHandler::handle);
 

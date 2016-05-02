@@ -19,7 +19,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.channels.ServerSocketChannel;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author kawasima
@@ -56,11 +59,18 @@ public class JettyRunner {
         ReusePortAvailableConnector connector = new ReusePortAvailableConnector(server);
         connector.setPort(3000);
         server.setHandler(new AbstractHandler() {
+            private static final String CHARS = "0123456789ABCDEF";
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                String s = new Random().ints(0, CHARS.length())
+                        .mapToObj(i -> CHARS.charAt(i))
+                        .limit(4096)
+                        .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                        .toString();
                 response.setStatus(200);
                 PrintWriter out = response.getWriter();
                 out.println("hello " + serverId);
+                out.println("secret " + s);
                 baseRequest.setHandled(true);
             }
         });

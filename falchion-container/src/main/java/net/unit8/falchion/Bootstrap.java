@@ -1,9 +1,7 @@
 package net.unit8.falchion;
 
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
+import net.unit8.falchion.monitor.MonitorSupplier;
+import org.kohsuke.args4j.*;
 import org.kohsuke.args4j.spi.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +10,8 @@ import sun.misc.Signal;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author kawasima
@@ -25,9 +25,18 @@ public class Bootstrap {
             metaVar = "CLASSPATH")
     private String classpath;
 
+    @Option(name = "-m")
+    private List<String> monitors = new ArrayList<>();
+
     @Option(name = "-p", usage = "size of JVM processes", metaVar = "SIZE")
     private int poolSize = 1;
 
+    @Option(name = "--auto-tuning", usage = "tuning JVM parameter automatically")
+    private boolean autoTuning = false;
+
+    @Option(name = "--lifetime", usage = "lifetime of a jvm process",
+            metaVar = "SEC")
+    private long lifetime = 0;
 
     @Argument
     private List<String> arguments = new ArrayList<>();
@@ -44,7 +53,15 @@ public class Bootstrap {
             return;
         }
 
+        Set<MonitorSupplier> monitorSuppliers = monitors.stream()
+                .map(MonitorSupplier::valueOf)
+                .collect(Collectors.toSet());
+
         Container container = new Container(poolSize);
+        container.setMonitorSuppliers(monitorSuppliers);
+        if (lifetime > 0) {
+            container.setLifetime(lifetime);
+        }
         ApiServer apiServer = new ApiServer(container);
 
         Signal.handle(TERM, signal -> {
