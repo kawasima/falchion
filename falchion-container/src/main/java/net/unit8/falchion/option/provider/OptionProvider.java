@@ -1,4 +1,4 @@
-package net.unit8.falchion.option;
+package net.unit8.falchion.option.provider;
 
 import java.util.List;
 

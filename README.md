@@ -10,10 +10,15 @@ If the container catch a HUP signal, it creates a new JVM processes and kill old
 
 - -cp  Classpath
 - -p   The pool size of JVM processes. (default value is 1)
-- --lifetime LIFETIME SECCONDS  The lifetime of one jvm process. If you set the option to 3600, container will kill all old JVMs and create new JVMs gracefully.
+- --lifetime LIFETIME SECONDS  The lifetime of one jvm process. If you set the option to 3600, container will kill all old JVMs and create new JVMs gracefully.
 - -m MONITORS  Adds monitors for monitoring a jvm process.
   Available monitors:
-    - JSTAT_GCUTIL  GC statistics using by jstat.
+    - JSTAT_GCUTIL  GC statistics using jstat
+    - METRICS_JMX   Metrics using JMX
+- --auto-tuning  tuning JVM parameters automatically.
+- --evaluator EVALUATOR 
+
+   
 
 ## REST　API
 

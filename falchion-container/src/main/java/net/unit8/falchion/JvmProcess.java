@@ -26,6 +26,9 @@ public class JvmProcess implements Callable<JvmResult> {
     private String id;
     private long pid = -1;
     private String mainClass;
+    private String classpath;
+    private List<String> jvmOptions;
+
     private ProcessBuilder processBuilder;
     private transient Process process;
     private long startedAt;
@@ -46,15 +49,11 @@ public class JvmProcess implements Callable<JvmResult> {
     public JvmProcess(String mainClass, String classpath) {
         this.id = generateId(5);
         this.mainClass = mainClass;
+        this.classpath = classpath;
         this.ready = new CompletableFuture<>();
         this.monitors = new HashSet<>();
 
-        String javaHome = System.getProperty("java.home");
-        LOG.info(javaHome + "/bin/java " + "-cp " + classpath + " " + mainClass);
-        processBuilder = new ProcessBuilder()
-                .command(javaHome + "/bin/java",
-                        "-cp", classpath,
-                        mainClass);
+        processBuilder = new ProcessBuilder().inheritIO();
     }
 
     public CompletableFuture<Void> waitForReady() {
@@ -63,17 +62,22 @@ public class JvmProcess implements Callable<JvmResult> {
 
     public void ready() {
         ready.complete(null);
+        monitors.forEach(m -> m.start(this));
     }
 
     @Override
     public JvmResult call() throws Exception {
+        String javaHome = System.getProperty("java.home");
+        List<String> commandArgs = new ArrayList<>();
+        commandArgs.addAll(Arrays.asList(javaHome + "/bin/java", "-cp", classpath));
+        commandArgs.addAll(jvmOptions);
+        commandArgs.add(mainClass);
+        processBuilder.command(commandArgs);
         try {
             process = processBuilder.start();
             startedAt = System.currentTimeMillis();
             pid = process.getPid();
             LOG.info("process started: id={}, pid={}", id, pid);
-
-            monitors.forEach(m -> m.start(this));
 
             return new JvmResult(id, pid, process.waitFor());
         } catch (InterruptedException ex) {
@@ -126,7 +130,7 @@ public class JvmProcess implements Callable<JvmResult> {
             if (killResult != 0)
                 throw new IOException("kill " + pid + " is failure");
         } catch (InterruptedException ex) {
-            LOG.info("Kill the process (pid={}) is canceled.", pid);
+            LOG.warn("Kill the process (pid={}) is canceled.", pid);
         }
     }
 
@@ -144,5 +148,13 @@ public class JvmProcess implements Callable<JvmResult> {
         return monitors.stream()
                 .map(JvmMonitor::getStat)
                 .collect(Collectors.toList());
+    }
+
+    public void setJvmOptions(List<String> options) {
+        this.jvmOptions = options;
+    }
+
+    public List<String> getJvmOptions() {
+        return jvmOptions;
     }
 }

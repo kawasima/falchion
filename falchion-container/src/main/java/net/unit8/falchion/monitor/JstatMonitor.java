@@ -22,11 +22,10 @@ public class JstatMonitor implements GcMonitor {
             process = new ProcessBuilder("jstat", "-gcutil",
                     Long.toString(jvmProcess.getPid()), "3000")
                     .start();
-            JstatGcutilParser parser = new JstatGcutilParser();
+            GcutilJstatParser parser = new GcutilJstatParser();
             monitorThread = new Thread(() -> {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 try {
-
                     String line = reader.readLine();
                     while ((line = reader.readLine()) != null) {
                         stat = parser.parse(line);

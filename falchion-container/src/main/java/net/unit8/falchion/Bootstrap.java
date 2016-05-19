@@ -1,14 +1,17 @@
 package net.unit8.falchion;
 
+import net.unit8.falchion.evaluator.EvaluatorSupplier;
 import net.unit8.falchion.monitor.MonitorSupplier;
 import org.kohsuke.args4j.*;
 import org.kohsuke.args4j.spi.Messages;
+import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,12 +24,12 @@ public class Bootstrap {
     private static final Signal HUP  = new Signal("HUP");
     private static final Signal TERM = new Signal("TERM");
 
-    @Option(name = "-cp", usage="Class search path of directories and zip/jar files",
+    @Option(name = "-cp", usage = "Class search path of directories and zip/jar files",
             metaVar = "CLASSPATH")
     private String classpath;
 
-    @Option(name = "-m")
-    private List<String> monitors = new ArrayList<>();
+    @Option(name = "-m", usage = "name of JVM process monitor", handler = StringArrayOptionHandler.class)
+    private String[] monitors = {};
 
     @Option(name = "-p", usage = "size of JVM processes", metaVar = "SIZE")
     private int poolSize = 1;
@@ -34,9 +37,16 @@ public class Bootstrap {
     @Option(name = "--auto-tuning", usage = "tuning JVM parameter automatically")
     private boolean autoTuning = false;
 
+    @Option(name = "--evaluator", usage ="JVM parameter evaluator")
+    private String evaluator;
+
     @Option(name = "--lifetime", usage = "lifetime of a jvm process",
             metaVar = "SEC")
     private long lifetime = 0;
+
+    @Option(name = "--java-opts", usage = "options for worker processes",
+            metaVar = "JAVA_OPTS")
+    private String javaOpts;
 
     @Argument
     private List<String> arguments = new ArrayList<>();
@@ -53,12 +63,20 @@ public class Bootstrap {
             return;
         }
 
-        Set<MonitorSupplier> monitorSuppliers = monitors.stream()
+        LOG.info("monitors={}", Arrays.asList(monitors));
+        Set<MonitorSupplier> monitorSuppliers = Arrays.stream(monitors)
                 .map(MonitorSupplier::valueOf)
                 .collect(Collectors.toSet());
 
         Container container = new Container(poolSize);
         container.setMonitorSuppliers(monitorSuppliers);
+        container.setAutoTuning(autoTuning);
+        if (evaluator != null) {
+
+        } else if (autoTuning) {
+            container.setEvaluator(EvaluatorSupplier.MIN_GC_TIME.createEvaluator());
+        }
+        container.setJavaOpts(javaOpts);
         if (lifetime > 0) {
             container.setLifetime(lifetime);
         }
@@ -85,6 +103,10 @@ public class Bootstrap {
     }
 
     public static void main(String... args) {
+        double version = Double.parseDouble(System.getProperty("java.specification.version"));
+        if (version < 9) {
+            throw new UnsupportedOperationException("JDK9 or newer is required");
+        }
         new Bootstrap().doMain(args);
     }
 }

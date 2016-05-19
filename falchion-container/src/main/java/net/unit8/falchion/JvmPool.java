@@ -1,13 +1,19 @@
 package net.unit8.falchion;
 
+import net.unit8.falchion.evaluator.Evaluator;
+import net.unit8.falchion.evaluator.MinGcTime;
+import net.unit8.falchion.supplier.AutoOptimizableProcessSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author kawasima
@@ -37,13 +43,12 @@ public class JvmPool {
                 try {
                     Future<JvmResult> resultFuture = jvmCompletionService.take();
                     JvmResult result = resultFuture.get();
-                    LOG.info("JVM end (id = " + result.getId()
-                            + ", status=" + result.getExitStatus() + ")");
+                    LOG.info("JVM end (id = {}, status={})", result.getId(), result.getExitStatus());
                     processes.remove(result.getId());
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                } finally {
-
+                    LOG.error("Completion monitor interrupted", ex);
+                } catch (ExecutionException ex) {
+                    LOG.error("Process ends with error", ex);
                 }
                 if (autofill) fill();
             }
@@ -54,9 +59,7 @@ public class JvmPool {
         JvmProcess process = processSupplier.get();
         Future<JvmResult> future = jvmCompletionService.submit(process);
         processes.put(process.getId(), new ProcessHolder(process, future));
-        LOG.info("create new JVM (id=" + process.getId()
-                + ", pid=" + process.getPid()
-                + ")");
+        LOG.info("create new JVM (id={}, pid={})", process.getId(), process.getPid());
         return process;
     }
 
@@ -70,6 +73,11 @@ public class JvmPool {
         Set<JvmProcess> oldProcesses = processes.values().stream()
                 .map(ProcessHolder::getProcess)
                 .collect(Collectors.toSet());
+
+        Stream.of(processSupplier)
+                .filter(AutoOptimizableProcessSupplier.class::isInstance)
+                .map(AutoOptimizableProcessSupplier.class::cast)
+                .forEach(supplier -> supplier.feedback(oldProcesses));
 
         for (JvmProcess oldProcess : oldProcesses) {
             try {

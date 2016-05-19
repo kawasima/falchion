@@ -1,6 +1,11 @@
 package net.unit8.falchion;
 
+import net.unit8.falchion.evaluator.Evaluator;
 import net.unit8.falchion.monitor.MonitorSupplier;
+import net.unit8.falchion.option.provider.OptionProvider;
+import net.unit8.falchion.option.provider.StandardOptionProvider;
+import net.unit8.falchion.supplier.AutoOptimizableProcessSupplier;
+import net.unit8.falchion.supplier.StandardProcessSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,13 +13,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
+ * Manages some JVM processes.
+ *
  * @author kawasima
  */
 public class Container {
@@ -23,10 +32,19 @@ public class Container {
     private JvmPool pool;
     private File logDir;
     private long lifetime;
+    private boolean autoTuning;
+    private Evaluator evaluator;
+    private String javaOpts;
+
     private ScheduledExecutorService autoRefreshTimer;
 
     private Set<MonitorSupplier> monitorSuppliers;
 
+    /**
+     * Creates a container.
+     *
+     * @param poolSize The size of JVM pool.
+     */
     public Container(int poolSize) {
         this.poolSize = poolSize;
     }
@@ -40,14 +58,12 @@ public class Container {
     }
 
     public void start(final String mainClass, String classpath) {
-        pool = new JvmPool(poolSize, () -> {
-            JvmProcess p = new JvmProcess(mainClass, classpath);
-            if (logDir != null && logDir.isDirectory()) {
-                p.setIoDir(logDir);
-            }
-            monitorSuppliers.forEach(ms -> p.addMonitor(ms.createMonitor()));
-            return p;
-        });
+        Supplier<JvmProcess> processSupplier = new StandardProcessSupplier(
+                mainClass, classpath, javaOpts, logDir, monitorSuppliers);
+        if (autoTuning) {
+            processSupplier = new AutoOptimizableProcessSupplier(processSupplier, evaluator);
+        }
+        pool = new JvmPool(poolSize, processSupplier);
         pool.fill();
         if (lifetime > 0) {
             autoRefreshTimer = Executors.newSingleThreadScheduledExecutor();
@@ -65,6 +81,11 @@ public class Container {
         start(mainClass, getClasspath());
     }
 
+    /**
+     * Returns the pool of JVM processes.
+     *
+     * @return a JvmPool
+     */
     public JvmPool getPool() {
         return pool;
     }
@@ -79,5 +100,17 @@ public class Container {
 
     public void setLifetime(long survivalTime) {
         this.lifetime = survivalTime;
+    }
+
+    public void setJavaOpts(String javaOpts) {
+        this.javaOpts = javaOpts;
+    }
+
+    public void setAutoTuning(boolean autoTuning) {
+        this.autoTuning = autoTuning;
+    }
+
+    public void setEvaluator(Evaluator evaluator) {
+        this.evaluator = evaluator;
     }
 }

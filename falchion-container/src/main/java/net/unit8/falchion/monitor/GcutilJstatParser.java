@@ -3,7 +3,7 @@ package net.unit8.falchion.monitor;
 /**
  * @author kawasima
  */
-public class JstatGcutilParser {
+public class GcutilJstatParser {
     public GcStat parse(String line) {
         String[] tokens = line.trim().split("\\s+");
         return new GcStat(

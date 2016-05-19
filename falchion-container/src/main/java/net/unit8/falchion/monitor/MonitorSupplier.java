@@ -6,7 +6,8 @@ import java.util.function.Supplier;
  * @author kawasima
  */
 public enum MonitorSupplier {
-    JSTAT_GCUTIL(() -> new JstatMonitor());
+    GCUTIL_JSTAT(() -> new JstatMonitor()),
+    METRICS_JMX(() -> new MetricsJmxMonitor());
 
     private Supplier<JvmMonitor> monitorSupplier;
 
