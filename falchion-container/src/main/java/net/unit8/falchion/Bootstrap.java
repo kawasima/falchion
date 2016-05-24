@@ -1,5 +1,6 @@
 package net.unit8.falchion;
 
+import net.unit8.falchion.evaluator.Evaluator;
 import net.unit8.falchion.evaluator.EvaluatorSupplier;
 import net.unit8.falchion.monitor.MonitorSupplier;
 import org.kohsuke.args4j.*;
@@ -72,7 +73,7 @@ public class Bootstrap {
         container.setMonitorSuppliers(monitorSuppliers);
         container.setAutoTuning(autoTuning);
         if (evaluator != null) {
-
+            container.setEvaluator(EvaluatorSupplier.valueOf(evaluator).createEvaluator());
         } else if (autoTuning) {
             container.setEvaluator(EvaluatorSupplier.MIN_GC_TIME.createEvaluator());
         }

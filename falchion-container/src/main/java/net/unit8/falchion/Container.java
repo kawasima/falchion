@@ -61,6 +61,7 @@ public class Container {
         Supplier<JvmProcess> processSupplier = new StandardProcessSupplier(
                 mainClass, classpath, javaOpts, logDir, monitorSuppliers);
         if (autoTuning) {
+            LOG.info("Auto tuning setup using evaluator {}", evaluator);
             processSupplier = new AutoOptimizableProcessSupplier(processSupplier, evaluator);
         }
         pool = new JvmPool(poolSize, processSupplier);

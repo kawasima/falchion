@@ -17,6 +17,7 @@ public class StandardProcessSupplier implements Supplier<JvmProcess> {
     private String classpath;
     private File logDir;
     private Set<MonitorSupplier> monitorSuppliers;
+    private StandardOptionProvider standardOptionProvider;
 
     public StandardProcessSupplier(String mainClass, String classpath, String javaOpts, File logDir, Set<MonitorSupplier> monitorSuppliers) {
         this.javaOpts = javaOpts;
@@ -24,13 +25,13 @@ public class StandardProcessSupplier implements Supplier<JvmProcess> {
         this.classpath = classpath;
         this.logDir = logDir;
         this.monitorSuppliers = monitorSuppliers;
-
-        StandardOptionProvider standardOptionProvider = new StandardOptionProvider(javaOpts, 0.0);
+        standardOptionProvider = new StandardOptionProvider(javaOpts, 0.0);
     }
 
     @Override
     public JvmProcess get() {
         JvmProcess p = new JvmProcess(mainClass, classpath);
+        p.setJvmOptions(standardOptionProvider.getOptions());
         if (logDir != null && logDir.isDirectory()) {
             p.setIoDir(logDir);
         }

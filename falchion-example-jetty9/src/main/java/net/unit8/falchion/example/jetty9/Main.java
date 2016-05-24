@@ -86,7 +86,10 @@ public class Main {
         server.addConnector(connector);
         server.start();
 
-        String vmName= ManagementFactory.getRuntimeMXBean().getName();
+        final JmxReporter reporter = JmxReporter.forRegistry(metrics).build();
+        reporter.start();
+
+        String vmName = ManagementFactory.getRuntimeMXBean().getName();
         long pid = Long.valueOf(vmName.split("@")[0]);
         HttpResponse response = HttpRequest
                 .create(new URI("http://localhost:44010/jvm/" + pid + "/ready"))
@@ -97,9 +100,6 @@ public class Main {
         if (status != 204) {
             server.stop();
         }
-
-        final JmxReporter reporter = JmxReporter.forRegistry(metrics).build();
-        reporter.start();
 
         server.join();
     }

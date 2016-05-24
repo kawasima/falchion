@@ -70,7 +70,9 @@ public class JvmProcess implements Callable<JvmResult> {
         String javaHome = System.getProperty("java.home");
         List<String> commandArgs = new ArrayList<>();
         commandArgs.addAll(Arrays.asList(javaHome + "/bin/java", "-cp", classpath));
-        commandArgs.addAll(jvmOptions);
+        if (jvmOptions != null) {
+            commandArgs.addAll(jvmOptions);
+        }
         commandArgs.add(mainClass);
         processBuilder.command(commandArgs);
         try {
