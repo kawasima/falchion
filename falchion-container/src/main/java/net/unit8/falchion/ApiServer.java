@@ -4,7 +4,10 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import me.geso.routes.RoutingResult;
 import me.geso.routes.WebRouter;
-import net.unit8.falchion.api.*;
+import net.unit8.falchion.api.ListJvmHandler;
+import net.unit8.falchion.api.ReadyJvmHandler;
+import net.unit8.falchion.api.RefreshContainerHandler;
+import net.unit8.falchion.api.ShowJvmHandler;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -14,13 +17,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * Provides RESTful APIs for managing the container.
+ *
  * @author kawasima
  */
 public class ApiServer {
     final HttpServer httpServer;
     private ExecutorService executor;
 
-    public ApiServer(Container container) {
+    public ApiServer(Container container, int port) {
         ListJvmHandler listJvmHandler = new ListJvmHandler(container);
         RefreshContainerHandler refreshContainerHandler = new RefreshContainerHandler(container);
         ReadyJvmHandler readyJvmHandler = new ReadyJvmHandler(container);
@@ -34,7 +39,7 @@ public class ApiServer {
 
         executor = Executors.newFixedThreadPool(20);
         try {
-            httpServer = HttpServer.create(new InetSocketAddress(44010), 0);
+            httpServer = HttpServer.create(new InetSocketAddress(port), 0);
             httpServer.setExecutor(executor);
             httpServer.createContext("/", exchange -> {
                 try {

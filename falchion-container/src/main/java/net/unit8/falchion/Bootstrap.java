@@ -1,9 +1,11 @@
 package net.unit8.falchion;
 
-import net.unit8.falchion.evaluator.Evaluator;
 import net.unit8.falchion.evaluator.EvaluatorSupplier;
 import net.unit8.falchion.monitor.MonitorSupplier;
-import org.kohsuke.args4j.*;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.Messages;
 import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 import org.slf4j.Logger;
@@ -18,6 +20,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Bootstraps JVM container.
+ *
  * @author kawasima
  */
 public class Bootstrap {
@@ -34,6 +38,9 @@ public class Bootstrap {
 
     @Option(name = "-p", usage = "size of JVM processes", metaVar = "SIZE")
     private int poolSize = 1;
+
+    @Option(name = "--admin-port", usage = "a port number of the api server", metaVar = "PORT")
+    private int adminPort = 44010;
 
     @Option(name = "--auto-tuning", usage = "tuning JVM parameter automatically")
     private boolean autoTuning = false;
@@ -81,7 +88,7 @@ public class Bootstrap {
         if (lifetime > 0) {
             container.setLifetime(lifetime);
         }
-        ApiServer apiServer = new ApiServer(container);
+        ApiServer apiServer = new ApiServer(container, adminPort);
 
         Signal.handle(TERM, signal -> {
             container.getPool().shutdown();

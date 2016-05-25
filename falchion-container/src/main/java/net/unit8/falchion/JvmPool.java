@@ -74,6 +74,8 @@ public class JvmPool {
                 .map(ProcessHolder::getProcess)
                 .collect(Collectors.toSet());
 
+        // If process supplier is instance of AutoOptiomizableProcessSupplier,
+        // feedback current monitoring value to supplier.
         Stream.of(processSupplier)
                 .filter(AutoOptimizableProcessSupplier.class::isInstance)
                 .map(AutoOptimizableProcessSupplier.class::cast)

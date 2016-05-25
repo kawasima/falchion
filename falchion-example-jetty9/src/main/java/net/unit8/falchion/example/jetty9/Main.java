@@ -3,6 +3,7 @@ package net.unit8.falchion.example.jetty9;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jetty9.InstrumentedHandler;
+import net.unit8.falchion.jetty9.ReusePortConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -30,36 +31,11 @@ import java.util.UUID;
  * @author kawasima
  */
 public class Main {
-    static class ReusePortAvailableConnector extends ServerConnector {
-        public ReusePortAvailableConnector(@Name("server") Server server) {
-            super(server);
-        }
-
-        @Override
-        public void open() throws IOException {
-            ServerSocketChannel serverChannel = ServerSocketChannel.open();
-            serverChannel.setOption(StandardSocketOptions.SO_REUSEPORT, true);
-
-            InetSocketAddress bindAddress = getHost() == null ? new InetSocketAddress(getPort()) : new InetSocketAddress(getHost(), getPort());
-            serverChannel.socket().setReuseAddress(getReuseAddress());
-            serverChannel.socket().bind(bindAddress, getAcceptQueueSize());
-            serverChannel.configureBlocking(true);
-            addBean(serverChannel);
-            try {
-                Field acceptChannel = ServerConnector.class.getDeclaredField("_acceptChannel");
-                acceptChannel.setAccessible(true);
-                acceptChannel.set(this, serverChannel);
-            } catch (Exception ex) {
-                throw new IOException(ex);
-            }
-        }
-    }
-
     public static void main(String[] args) throws Exception {
         MetricRegistry metrics = new MetricRegistry();
         String serverId = UUID.randomUUID().toString();
         Server server = new Server();
-        ReusePortAvailableConnector connector = new ReusePortAvailableConnector(server);
+        ReusePortConnector connector = new ReusePortConnector(server);
         connector.setPort(3000);
 
         HandlerWrapper handler = new InstrumentedHandler(metrics, "falchion");

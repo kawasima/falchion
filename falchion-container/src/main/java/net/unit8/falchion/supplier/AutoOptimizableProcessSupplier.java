@@ -20,7 +20,7 @@ public class AutoOptimizableProcessSupplier implements Supplier<JvmProcess> {
     private StandardOptionProvider standardOptionProvider;
     private Evaluator evaluator;
     private Supplier<JvmProcess> baseSupplier;
-    private double variance = 1.0;
+    private double variance = 0.1;
 
     public AutoOptimizableProcessSupplier(Supplier<JvmProcess> baseSupplier, Evaluator evaluator) {
         this.baseSupplier = baseSupplier;

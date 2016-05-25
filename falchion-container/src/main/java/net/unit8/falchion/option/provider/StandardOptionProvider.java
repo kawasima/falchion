@@ -54,7 +54,7 @@ public class StandardOptionProvider implements OptionProvider {
                     .filter(s -> !s.isEmpty())
                     .forEach(s -> OPTION_SET.stream()
                             .filter(opt -> s.startsWith(opt.getPrefix()))
-                            .forEach(opt -> opt.setValue(this, s))
+                            .forEach(opt -> opt.setValue(this, s, coefficientOfVariance))
                     );
         }
     }
@@ -65,17 +65,26 @@ public class StandardOptionProvider implements OptionProvider {
         options.add(jvmType.getOptionValue());
         options.add("-XX:+StartAttachListener");
         options.add("-XX:+UseParallelGC");
+
+        Long maxHeapFreeRatioValue = null;
+
         if (initialHeap != null)
             options.add("-Xms" + initialHeap.getValue() + "m");
 
         if (maxHeap != null)
             options.add("-Xmx" + maxHeap.getValue() + "m");
 
-        if (maxHeapFreeRatio != null)
-            options.add("-XX:MaxHeapFreeRatio=" + maxHeapFreeRatio.getValue());
+        if (maxHeapFreeRatio != null) {
+            maxHeapFreeRatioValue = maxHeapFreeRatio.getValue();
+            options.add("-XX:MaxHeapFreeRatio=" + maxHeapFreeRatioValue);
+        }
 
-        if (minHeapFreeRatio != null)
-            options.add("-XX:MinHeapFreeRatio=" + minHeapFreeRatio.getValue());
+        if (minHeapFreeRatio != null) {
+            long min = minHeapFreeRatio.getValue();
+            if (maxHeapFreeRatioValue != null && min > maxHeapFreeRatioValue)
+                min = maxHeapFreeRatioValue;
+            options.add("-XX:MinHeapFreeRatio=" + min);
+        }
 
         if (newRatio != null)
             options.add("-XX:NewRatio=" + newRatio.getValue());
@@ -102,11 +111,11 @@ public class StandardOptionProvider implements OptionProvider {
             return prefix;
         }
 
-        public void setValue(StandardOptionProvider sop, String optionString) {
+        public void setValue(StandardOptionProvider sop, String optionString, double variance) {
             String val = optionString.substring(prefix.length());
 
             if (Pattern.matches("[0-9]+", val)) {
-                setter.accept(sop, new LongSampler(Long.parseLong(val), 0.0, min, max));
+                setter.accept(sop, new LongSampler(Long.parseLong(val), (max - min) * variance, min, max));
             } else if (Pattern.matches("[0-9]+[Mm]", val)) {
                 setter.accept(sop, new LongSampler(Long.parseLong(val.substring(0, val.length() - 1)), 0.0, min, max));
             } else if (Pattern.matches("[0-9]+[Gg]", val)) {

@@ -2,8 +2,6 @@ package net.unit8.falchion;
 
 import net.unit8.falchion.evaluator.Evaluator;
 import net.unit8.falchion.monitor.MonitorSupplier;
-import net.unit8.falchion.option.provider.OptionProvider;
-import net.unit8.falchion.option.provider.StandardOptionProvider;
 import net.unit8.falchion.supplier.AutoOptimizableProcessSupplier;
 import net.unit8.falchion.supplier.StandardProcessSupplier;
 import org.slf4j.Logger;
@@ -13,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,6 +46,11 @@ public class Container {
         this.poolSize = poolSize;
     }
 
+    /**
+     * Gets the classpath that is applied for a child process.
+     *
+     * @return a String contains classpath
+     */
     private String getClasspath() {
         LOG.info(System.getProperty("java.class.path"));
         return Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
@@ -57,6 +59,12 @@ public class Container {
                 .collect(Collectors.joining(":"));
     }
 
+    /**
+     * Starts the container.
+     *
+     * @param mainClass the name of main class
+     * @param classpath the classpath is applied for a child process
+     */
     public void start(final String mainClass, String classpath) {
         Supplier<JvmProcess> processSupplier = new StandardProcessSupplier(
                 mainClass, classpath, javaOpts, logDir, monitorSuppliers);
