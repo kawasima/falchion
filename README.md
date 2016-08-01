@@ -1,6 +1,6 @@
 # Falchion
 
-Falchion is a JVM container for the fault tolerant server.
+Falchion is an antifragile JVM container.
 Falchion container requires JDK9 because it's using SO_REUSEPORT flag. JDK9 supports SO_REUSEPORT only on Linux.
 
 When the container has started, it forks JVM processes until the given pool size.
@@ -20,7 +20,7 @@ If the container catch a HUP signal, it creates a new JVM processes and kill old
 
    
 
-## REST　API
+## REST API
 
 ![api](http://i.imgur.com/iIRC5Ix.png)
 
@@ -53,4 +53,8 @@ Content-length: 182
 ### POST /container/refresh
 
 Kill all old JVMs and create new JVMs gracefully.
+
+## Auto tuning
+
+Falchion can optimize JVM options automatically.
 

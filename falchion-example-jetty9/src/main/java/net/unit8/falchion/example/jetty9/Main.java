@@ -38,6 +38,8 @@ public class Main {
         ReusePortConnector connector = new ReusePortConnector(server);
         connector.setPort(3000);
 
+        AllStringCache cache = new AllStringCache();
+
         HandlerWrapper handler = new InstrumentedHandler(metrics, "falchion");
         handler.setHandler(new AbstractHandler() {
             private static final String CHARS = "0123456789ABCDEF";
@@ -48,6 +50,7 @@ public class Main {
                         .limit(4096)
                         .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                         .toString();
+                cache.put(s);
                 response.setStatus(200);
                 PrintWriter out = response.getWriter();
                 out.println("hello " + serverId);
