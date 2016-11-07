@@ -6,10 +6,8 @@ import com.codahale.metrics.jetty9.InstrumentedHandler;
 import net.unit8.falchion.jetty9.ReusePortConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
-import org.eclipse.jetty.util.annotation.Name;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -17,13 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Field;
-import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.channels.ServerSocketChannel;
 import java.util.Random;
 import java.util.UUID;
 
