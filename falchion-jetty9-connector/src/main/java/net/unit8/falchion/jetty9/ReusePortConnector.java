@@ -1,5 +1,6 @@
 package net.unit8.falchion.jetty9;
 
+import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.annotation.Name;
@@ -16,6 +17,10 @@ import java.nio.channels.ServerSocketChannel;
 public class ReusePortConnector extends ServerConnector {
     public ReusePortConnector(@Name("server") Server server) {
         super(server);
+    }
+
+    public ReusePortConnector(@Name("server") Server server, @Name("factories") ConnectionFactory... factories) {
+        super(server, factories);
     }
 
     @Override
