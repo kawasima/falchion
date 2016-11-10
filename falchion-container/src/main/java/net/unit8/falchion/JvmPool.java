@@ -1,7 +1,5 @@
 package net.unit8.falchion;
 
-import net.unit8.falchion.evaluator.Evaluator;
-import net.unit8.falchion.evaluator.MinGcTime;
 import net.unit8.falchion.supplier.AutoOptimizableProcessSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
@@ -29,6 +28,7 @@ public class JvmPool {
     private ExecutorCompletionService<JvmResult> jvmCompletionService;
 
     private Map<String, ProcessHolder> processes = new ConcurrentHashMap<>();
+    private String classpath;
 
     public JvmPool(int poolSize, Supplier<JvmProcess> processSupplier) {
         this.poolSize = poolSize;
@@ -57,6 +57,9 @@ public class JvmPool {
 
     public JvmProcess create() {
         JvmProcess process = processSupplier.get();
+        if (Objects.nonNull(classpath)) {
+            process.setClasspath(classpath);
+        }
         Future<JvmResult> future = jvmCompletionService.submit(process);
         processes.put(process.getId(), new ProcessHolder(process, future));
         LOG.info("create new JVM (id={}, pid={})", process.getId(), process.getPid());
@@ -120,6 +123,10 @@ public class JvmPool {
                 .filter(p -> p.getPid() == pid)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public void setClasspath(String classpath) {
+        this.classpath = classpath;
     }
 
     static class ProcessHolder {
