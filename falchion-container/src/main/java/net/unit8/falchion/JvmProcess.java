@@ -159,4 +159,9 @@ public class JvmProcess implements Callable<JvmResult> {
     public List<String> getJvmOptions() {
         return jvmOptions;
     }
+
+    void setClasspath(String classpath) {
+        this.classpath = classpath;
+    }
+
 }

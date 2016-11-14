@@ -10,13 +10,18 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Manages some JVM processes.
@@ -32,6 +37,7 @@ public class Container {
     private boolean autoTuning;
     private Evaluator evaluator;
     private String javaOpts;
+    private String basedir;
 
     private ScheduledExecutorService autoRefreshTimer;
 
@@ -56,7 +62,7 @@ public class Container {
         return Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
                 .map(File::new)
                 .map(File::getAbsolutePath)
-                .collect(Collectors.joining(":"));
+                .collect(joining(":"));
     }
 
     /**
@@ -86,8 +92,50 @@ public class Container {
         }
     }
 
+    /**
+     * start the container. this method generates classpath using basedir and aplVersion.
+     *
+     * @param mainClass  the name of main class
+     * @param basedir    the base directory where application zip/jar is stored
+     * @param aplVersion application version
+     */
+    public void start(final String mainClass, String basedir, String aplVersion) {
+        start(mainClass, createClasspath(basedir, aplVersion));
+    }
+
     public void start(final String mainClass) {
         start(mainClass, getClasspath());
+    }
+
+    /**
+     * generates classpath using basedir and aplVersion.
+     *
+     * @param basedir    the base directory where application zip/jar is stored
+     * @param aplVersion application version
+     */
+    public String createClasspath(String basedir, String aplVersion) {
+        try {
+            Stream<Path> paths = Files.walk(Paths.get(basedir));
+            String jarsPath = paths
+                    .filter(path -> path.toFile().isDirectory() && path.toFile().getName().contains(aplVersion))
+                    .flatMap(path -> {
+                        try {
+                            return Files.walk(Paths.get(path.toFile().getAbsolutePath()));
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    })
+                    .filter(path -> path.toFile().isFile() && path.toFile().getName().endsWith(".jar"))
+                    .map(path -> path.toFile().getAbsolutePath())
+                    .collect(joining(":"));
+            if (jarsPath.isEmpty()) {
+                return basedir;
+            } else {
+                return basedir + ":" + jarsPath;
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -121,5 +169,13 @@ public class Container {
 
     public void setEvaluator(Evaluator evaluator) {
         this.evaluator = evaluator;
+    }
+
+    public void setBasedir(String basedir) {
+        this.basedir = basedir;
+    }
+
+    public String getBasedir() {
+        return basedir;
     }
 }

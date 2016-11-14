@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,12 @@ public class Bootstrap {
             metaVar = "SEC")
     private long lifetime = 0;
 
+    @Option(name = "-basedir", usage = "base directory of zip/jar files")
+    private String basedir;
+
+    @Option(name = "-v", usage = "application version")
+    private String aplVersion;
+
     @Option(name = "--java-opts", usage = "options for worker processes",
             metaVar = "JAVA_OPTS")
     private String javaOpts;
@@ -79,6 +86,7 @@ public class Bootstrap {
         Container container = new Container(poolSize);
         container.setMonitorSuppliers(monitorSuppliers);
         container.setAutoTuning(autoTuning);
+        container.setBasedir(basedir);
         if (evaluator != null) {
             container.setEvaluator(EvaluatorSupplier.valueOf(evaluator).createEvaluator());
         } else if (autoTuning) {
@@ -103,10 +111,12 @@ public class Bootstrap {
         });
 
         apiServer.start();
-        if (classpath == null) {
-            container.start(args[0]);
-        } else {
+        if (Objects.nonNull(classpath)) {
             container.start(args[0], classpath);
+        } else if (Objects.nonNull(basedir) && Objects.nonNull(aplVersion)) {
+            container.start(args[0], basedir, aplVersion);
+        } else {
+            container.start(args[0]);
         }
     }
 

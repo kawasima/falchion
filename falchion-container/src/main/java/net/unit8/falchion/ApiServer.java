@@ -36,6 +36,7 @@ public class ApiServer {
         router.get("/jvm/{id}", showJvmHandler::handle);
         router.post("/jvm/{pid}/ready", readyJvmHandler::handle);
         router.post("/container/refresh", refreshContainerHandler::handle);
+        router.post("/container/refresh/{version}", refreshContainerHandler::handle);
 
         executor = Executors.newFixedThreadPool(20);
         try {

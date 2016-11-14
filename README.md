@@ -9,6 +9,8 @@ If the container catch a HUP signal, it creates a new JVM processes and kill old
 ## Options
 
 - -cp  Classpath
+- -basedir The base directory of jar files
+- -v application version
 - -p   The pool size of JVM processes. (default value is 1)
 - --lifetime LIFETIME SECONDS  The lifetime of one jvm process. If you set the option to 3600, container will kill all old JVMs and create new JVMs gracefully.
 - -m MONITORS  Adds monitors for monitoring a jvm process.
@@ -18,7 +20,16 @@ If the container catch a HUP signal, it creates a new JVM processes and kill old
 - --auto-tuning  tuning JVM parameters automatically.
 - --evaluator EVALUATOR 
 
-   
+When using the options "-basedir" and "-v", Falchion container generates classpath using basedir and aplVersion.
+Please set the folder hierarchy like the example below.
+
+- applicationBaseDir  <- basedir
+  - 0.1.0             <- application version
+    - applicationA.jar
+    - applicationB.jar
+    - subDir
+      - applicationC.jar
+  - 0.1.1
 
 ## REST API
 
@@ -53,6 +64,11 @@ Content-length: 182
 ### POST /container/refresh
 
 Kill all old JVMs and create new JVMs gracefully.
+
+### POST /container/refresh/{version}
+
+Kill all old JVMs and create new JVMs gracefully.
+Change classpath using new version.
 
 ## Auto tuning
 
