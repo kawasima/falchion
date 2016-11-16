@@ -19,9 +19,10 @@ public class ContainerTest {
                 .getAbsolutePath();
 
         String versionFolder = basePath + File.separator + "0.1.0" + File.separator;
+        assertThat(sut.createClasspath(basePath, "0.1.0"), startsWith(basePath + ":"));
+        assertThat(sut.createClasspath(basePath, "0.1.0"), containsString(versionFolder + "applicationA.jar"));
         assertThat(sut.createClasspath(basePath, "0.1.0"),
-                is(basePath + ":" + versionFolder + "applicationA.jar:"
-                        + versionFolder + "subDir" + File.separator + "applicationB.jar"));
+                containsString(versionFolder + "subDir" + File.separator + "applicationB.jar"));
         assertThat(sut.createClasspath(basePath, "0.1.1"), is(basePath));
     }
 
