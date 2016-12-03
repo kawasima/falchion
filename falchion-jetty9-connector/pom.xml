@@ -11,7 +11,7 @@
 
     <groupId>net.unit8.falchion</groupId>
     <artifactId>falchion-jetty9-connector</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
 
     <url>http://github.com/kawasima/falchion</url>
