@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Minimize count of full GC.
+ *
  * @author kawasima
  */
 public class MinFullGcCount implements Evaluator {
@@ -33,7 +35,7 @@ public class MinFullGcCount implements Evaluator {
             return 0;
         }
 
-        return gcStat.get().getGct() / metricsStat.get().getCount();
+        return gcStat.get().getFgct() / metricsStat.get().getCount();
     }
 
     public JvmProcess evaluate(Collection<JvmProcess> processes) {

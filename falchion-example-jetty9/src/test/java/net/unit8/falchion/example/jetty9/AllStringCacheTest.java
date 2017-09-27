@@ -5,8 +5,6 @@ import org.junit.Test;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
-
 /**
  * @author kawasima
  */
@@ -16,7 +14,7 @@ public class AllStringCacheTest {
 
     private String randomString() {
         return rand.ints(0, CHARS.length())
-                .mapToObj(i -> CHARS.charAt(i))
+                .mapToObj(CHARS::charAt)
                 .limit(4096)
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                 .toString();
@@ -25,8 +23,8 @@ public class AllStringCacheTest {
     @Test
     public void test() {
         AllStringCache cache = new AllStringCache();
-        Stream.generate(() -> randomString())
+        Stream.generate(this::randomString)
                 .limit(3)
-                .forEach(s -> cache.put(s));
+                .forEach(cache::put);
     }
 }

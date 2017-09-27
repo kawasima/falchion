@@ -4,7 +4,10 @@ import net.unit8.falchion.JvmProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 
 /**
  * @author kawasima
@@ -26,7 +29,7 @@ public class JstatMonitor implements GcMonitor {
             monitorThread = new Thread(() -> {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 try {
-                    String line = reader.readLine();
+                    String line;
                     while ((line = reader.readLine()) != null) {
                         stat = parser.parse(line);
                     }

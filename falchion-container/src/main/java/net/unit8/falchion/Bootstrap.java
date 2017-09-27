@@ -13,11 +13,7 @@ import org.slf4j.LoggerFactory;
 import sun.misc.Signal;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +59,7 @@ public class Bootstrap {
             metaVar = "JAVA_OPTS")
     private String javaOpts;
 
+    /** @noinspection MismatchedQueryAndUpdateOfCollection*/
     @Argument
     private List<String> arguments = new ArrayList<>();
 
@@ -74,6 +71,7 @@ public class Bootstrap {
                 throw new CmdLineException(parser, Messages.DEFAULT_META_EXPLICIT_BOOLEAN_OPTION_HANDLER);
             }
         } catch (CmdLineException ex) {
+            ex.printStackTrace();
             parser.printUsage(System.err);
             return;
         }

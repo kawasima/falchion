@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -114,14 +111,16 @@ public class JvmPool {
     }
 
     public JvmProcess getProcess(String id) {
-        return processes.get(id).getProcess();
+        return Optional.ofNullable(processes.get(id))
+                .map(holder -> holder.getProcess())
+                .orElse(null);
     }
 
     public JvmProcess getProcessByPid(long pid) {
         return processes.values().stream()
                 .map(ProcessHolder::getProcess)
-                .filter(p -> p.getPid() == pid)
-                .findFirst()
+                .filter(p -> p != null && p.getPid() == pid)
+                .findAny()
                 .orElse(null);
     }
 

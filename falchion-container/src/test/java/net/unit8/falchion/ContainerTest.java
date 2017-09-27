@@ -5,7 +5,7 @@ import org.junit.Test;
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author syobochim

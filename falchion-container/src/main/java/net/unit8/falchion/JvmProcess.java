@@ -78,10 +78,17 @@ public class JvmProcess implements Callable<JvmResult> {
         try {
             process = processBuilder.start();
             startedAt = System.currentTimeMillis();
-            pid = process.getPid();
+            pid = process.pid();
             LOG.info("process started: id={}, pid={}", id, pid);
 
-            return new JvmResult(id, pid, process.waitFor());
+            //return new JvmResult(id, pid, process.waitFor());
+            return new JvmResult(id, pid, process.onExit()
+                    .whenComplete((result, ex) -> {
+                        if (ex == null) {
+
+                        }
+                    })
+            .get().exitValue());
         } catch (InterruptedException ex) {
             LOG.info("process interrupted: id={}, pid={}", id, pid);
             try {
@@ -164,4 +171,8 @@ public class JvmProcess implements Callable<JvmResult> {
         this.classpath = classpath;
     }
 
+    @Override
+    public String toString() {
+        return "JvmProcess{id=" + id + ", pid=" + pid + "}";
+    }
 }

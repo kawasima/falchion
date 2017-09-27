@@ -42,9 +42,9 @@ public class ShowJvmHandler extends AbstractApi {
 
                 process.getMonitorStats()
                         .stream()
-                        .map(MonitorStat::toJson)
                         .filter(Objects::nonNull)
-                        .forEach(json -> monitorStats.add(json));
+                        .map(MonitorStat::toJson)
+                        .forEach(monitorStats::add);
 
                 jvmStatus.add("id", process.getId());
                 jvmStatus.add("pid", process.getPid());

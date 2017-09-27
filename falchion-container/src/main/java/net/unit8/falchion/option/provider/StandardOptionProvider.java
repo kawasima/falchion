@@ -5,7 +5,6 @@ import net.unit8.falchion.option.sampler.LongSampler;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
@@ -32,20 +31,20 @@ public class StandardOptionProvider implements OptionProvider {
     public StandardOptionProvider(long initialHeap, long maxHeap) {
         this.initialHeap = new LongSampler(initialHeap);
         this.maxHeap = new LongSampler(maxHeap);
-        this.maxHeapFreeRatio = new LongSampler(70, 0, 0l, 100l);
-        this.minHeapFreeRatio = new LongSampler(40, 0, 0l, 100l);
-        this.newRatio = new LongSampler(2, 0, 1l, 4l);
-        this.survivorRatio = new LongSampler(8, 0, 1l, 16l);
+        this.maxHeapFreeRatio = new LongSampler(70, 0, 0L, 100L);
+        this.minHeapFreeRatio = new LongSampler(40, 0, 0L, 100L);
+        this.newRatio = new LongSampler(2, 0, 1L, 4L);
+        this.survivorRatio = new LongSampler(8, 0, 1L, 16L);
     }
 
     public StandardOptionProvider(long initialHeap, long maxHeap, double coefficientOfVariance) {
         this.initialHeap = new LongSampler(initialHeap);
         this.maxHeap = new LongSampler(maxHeap);
 
-        this.maxHeapFreeRatio = new LongSampler(70, coefficientOfVariance * 5, 0l, 100l);
-        this.minHeapFreeRatio = new LongSampler(40, coefficientOfVariance * 5, 0l, 100l);
-        this.newRatio = new LongSampler(2, coefficientOfVariance * 1, 1l, 4l);
-        this.survivorRatio = new LongSampler(8, coefficientOfVariance * 4, 1l, 16l);
+        this.maxHeapFreeRatio = new LongSampler(70, coefficientOfVariance * 5, 0L, 100L);
+        this.minHeapFreeRatio = new LongSampler(40, coefficientOfVariance * 5, 0L, 100L);
+        this.newRatio = new LongSampler(2, coefficientOfVariance * 1, 1L, 4L);
+        this.survivorRatio = new LongSampler(8, coefficientOfVariance * 4, 1L, 16L);
     }
 
     public StandardOptionProvider(String javaOpts, double coefficientOfVariance) {

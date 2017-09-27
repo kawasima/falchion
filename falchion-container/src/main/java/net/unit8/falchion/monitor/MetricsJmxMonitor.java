@@ -11,7 +11,6 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 /**
  * @author kawasima

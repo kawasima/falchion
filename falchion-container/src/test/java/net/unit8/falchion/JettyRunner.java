@@ -12,19 +12,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Field;
-import java.net.*;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.channels.ServerSocketChannel;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
+ *
+ *
+ *
  * @author kawasima
  */
 public class JettyRunner {
@@ -63,7 +61,7 @@ public class JettyRunner {
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 String s = new Random().ints(0, CHARS.length())
-                        .mapToObj(i -> CHARS.charAt(i))
+                        .mapToObj(CHARS::charAt)
                         .limit(4096)
                         .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                         .toString();
@@ -81,15 +79,6 @@ public class JettyRunner {
 
         String vmName= ManagementFactory.getRuntimeMXBean().getName();
         long pid = Long.valueOf(vmName.split("@")[0]);
-        HttpResponse response = HttpRequest
-                .create(new URI("http://localhost:44010/jvm/" + pid + "/ready"))
-                .POST()
-                .response();
-        response.body(HttpResponse.ignoreBody());
-        int status = response.statusCode();
-        if (status != 204) {
-            server.stop();
-        }
 
         server.join();
     }

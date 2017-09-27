@@ -19,7 +19,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>9</java.version>
-        <metrics.version>3.1.2</metrics.version>
+        <metrics.version>3.2.2</metrics.version>
+        <jetty.version>9.4.6.v20170531</jetty.version>
     </properties>
 
     <build>
@@ -39,7 +40,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.3.8.v20160314</version>
+            <version>${jetty.version}</version>
         </dependency>
 
         <dependency>
@@ -50,7 +51,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.25</version>
         </dependency>
 
         <dependency>

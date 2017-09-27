@@ -1,6 +1,7 @@
 package net.unit8.falchion.monitor;
 
-import javax.json.*;
+import javax.json.Json;
+import javax.json.JsonObject;
 import java.util.Locale;
 
 /**
