@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+
+##
+
+export FALCHION_VERSION="0.2.0-SNAPSHOT"
+
+case $FALCHION_VERSION in
+    *SNAPSHOT) SNAPSHOT="YES" ;;
+    *) SNAPSHOT="NO" ;;
+esac
+
+
+
+function download_failed_message {
+    echo "Failed to download $1 (exit code $2)"
+    echo "It's possible your HTTP client's certificate store does not have the"
+    echo "correct certificate authority needed. This is often caused by an"
+    echo "out-of-date version of libssl. It's also possible that you're behind a"
+    echo "firewall and haven't set HTTP_PROXY and HTTPS_PROXY."
+}
+
+function get_download_url {
+    local version=$FALCHION_VERSION
+    if [ ${SNAPSHOT} = "YES" ]; then
+        MAVEN_REPO_URL="https://oss.sonatype.org/content/repositories/snapshots"
+        version=$(curl -s ${MAVEN_REPO_URL}/net/unit8/falchion/falchion-container/${FALCHION_VERSION}/maven-metadata.xml |  xmllint --xpath "//snapshotVersion/extension[text()='jar']/following-sibling::value/text()" -)
+    else
+        MAVEN_REPO_URL="https://repo1.maven.org/maven2"
+    fi
+
+    echo "${MAVEN_REPO_URL}/net/unit8/falchion/falchion-container/${FALCHION_VERSION}/falchion-container-${version}.jar"
+}
+
+function self_install {
+    if [ -r "$FALCHION_JAR" ]; then
+        echo "The self-install jar already exists at $FALCHION_JAR."
+        echo "If you wish to re-download, delete it and rerun \"$0 self-install\"."
+        exit 1
+    fi
+    echo "Downloading falchion to $FALCHION_JAR now..."
+    mkdir -p "$(dirname "$FALCHION_JAR")"
+    FALCHION_URL=$(get_download_url)
+    $HTTP_CLIENT "$FALCHION_JAR.pending" "$FALCHION_URL"
+    local exit_code=$?
+    if [ $exit_code == 0 ]; then
+        # TODO: checksum
+        mv -f "$FALCHION_JAR.pending" "$FALCHION_JAR"
+    else
+        rm "$FALCHION_JAR.pending" 2> /dev/null
+        download_failed_message "$FALCHION_URL" "$exit_code"
+        exit 1
+    fi
+}
+
+export FALCHION_HOME="${FALCHION_HOME:-"$HOME/.falchion"}"
+
+FALCHION_JAR="${FALCHION_HOME}/self-installs/falchion-container-${FALCHION_VERSION}.jar"
+
+# normalize $0 on certain BSDs
+if [ "$(dirname "$0")" = "." ]; then
+    SCRIPT="$(which "$(basename "$0")")"
+    if [ -z "$SCRIPT" ]; then
+        SCRIPT="$0"
+    fi
+else
+    SCRIPT="$0"
+fi
+
+# resolve symlinks to the script itself portably
+while [ -h "$SCRIPT" ] ; do
+    ls=$(ls -ld "$SCRIPT")
+    link=$(expr "$ls" : '.*-> \(.*\)$')
+    if expr "$link" : '/.*' > /dev/null; then
+        SCRIPT="$link"
+    else
+        SCRIPT="$(dirname "$SCRIPT"$)/$link"
+    fi
+done
+
+BIN_DIR="$(dirname "$SCRIPT")"
+
+# This needs to be defined before we call HTTP_CLIENT below
+if [ "$HTTP_CLIENT" = "" ]; then
+    if type -p curl >/dev/null 2>&1; then
+        if [ "$https_proxy" != "" ]; then
+            CURL_PROXY="-x $https_proxy"
+        fi
+        HTTP_CLIENT="curl $CURL_PROXY -f -L -o"
+    else
+        HTTP_CLIENT="wget -O"
+    fi
+fi
+
+if [ ! -r "$FALCHION_JAR" ]; then
+    self_install
+fi
+
+if [ ! -x "$JAVA_CMD" ] && ! type -f java >/dev/null
+then
+    >&2 echo "Falchion couldn't find 'java' executable, which is required."
+    >&2 echo "Please either set JAVA_CMD or put java (>=9) in your \$PATH ($PATH)."
+    exit 1
+fi
+
+export FALCHION_JAVA_CMD="${FALCHION_JAVA_CMD:-${JAVA_CMD:-java}}"
+
+# version check
+JAVA_VERSION=$($FALCHION_JAVA_CMD -version 2>&1 | grep -i version | sed 's/.*version "\(.*\)\.\(.*\)\..*"/\1/; 1q')
+
+if [ "${JAVA_VERSION}" -lt "9" ]; then
+    >&2 echo "Falchion requires Java9 or higher."
+    exit 1
+fi
+
+
+
+
+${FALCHION_JAVA_CMD} -jar ${FALCHION_JAR} "$@"

@@ -31,8 +31,7 @@ public class AutoOptimizableProcessSupplier implements Supplier<JvmProcess> {
     @Override
     public JvmProcess get() {
         JvmProcess process = baseSupplier.get();
-        List<String> options = new ArrayList<>();
-        options.addAll(standardOptionProvider.getOptions());
+        List<String> options = new ArrayList<>(standardOptionProvider.getOptions());
         process.setJvmOptions(options);
         return process;
     }

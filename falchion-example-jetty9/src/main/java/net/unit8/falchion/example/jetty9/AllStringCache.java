@@ -9,7 +9,7 @@ import java.util.UUID;
  * @author kawasima
  */
 public class AllStringCache {
-    private Cache<String, String> cache = CacheBuilder.newBuilder()
+    private final Cache<String, String> cache = CacheBuilder.newBuilder()
             .maximumSize(10000)
             .build();
 

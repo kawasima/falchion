@@ -6,6 +6,14 @@ Falchion container requires JDK9 because it's using SO_REUSEPORT flag. JDK9 supp
 When the container has started, it forks JVM processes until the given pool size.
 If the container catch a HUP signal, it creates a new JVM processes and kill old processes.
 
+## Usage
+
+Download the [falchion script](https://raw.githubusercontent.com/kawasima/falchion/master/bin/lein) and run.
+
+```
+% falchion [mainClass] -cp classpath
+```
+
 ## Options
 
 - -cp  Classpath
@@ -18,7 +26,7 @@ If the container catch a HUP signal, it creates a new JVM processes and kill old
     - JSTAT_GCUTIL  GC statistics using jstat
     - METRICS_JMX   Metrics using JMX
 - --auto-tuning  tuning JVM parameters automatically.
-- --evaluator EVALUATOR 
+- --evaluator EVALUATOR
 
 When using the options "-basedir" and "-v", Falchion container generates classpath using basedir and aplVersion.
 Please set the folder hierarchy like the example below.
@@ -40,7 +48,7 @@ Falchion container provides HTTP APIs for getting the information of JVM process
 ### GET /jvms
 
 ```
-% curl -i http://localhost:44010/jvms     
+% curl -i http://localhost:44010/jvms
 HTTP/1.1 200 OK
 Date: Mon, 02 May 2016 10:11:24 GMT
 Content-type: application/json
@@ -58,7 +66,7 @@ Date: Mon, 02 May 2016 10:12:23 GMT
 Content-type: application/json
 Content-length: 182
 
-{"id":"5jiic","pid":21914,"uptime":258357,"stats":[{"type":"gcutil","S0":0.0,"S1":100.0,"E":16.88,"O":3.1,"M":94.86,"CCS":80.13,"YGC":1,"YGCT":0.004,"FGC":0,"FGCT":0.0,"GCT":0.004}]}                                                                                      
+{"id":"5jiic","pid":21914,"uptime":258357,"stats":[{"type":"gcutil","S0":0.0,"S1":100.0,"E":16.88,"O":3.1,"M":94.86,"CCS":80.13,"YGC":1,"YGCT":0.004,"FGC":0,"FGCT":0.0,"GCT":0.004}]}
 ```
 
 ### POST /container/refresh
@@ -73,4 +81,3 @@ Change classpath using new version.
 ## Auto tuning
 
 Falchion can optimize JVM options automatically.
-

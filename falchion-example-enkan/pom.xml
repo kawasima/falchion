@@ -12,8 +12,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <enkan.version>0.2.1-SNAPSHOT</enkan.version>
-        <java.version>1.9</java.version>
+        <enkan.version>0.6.0-beta3</enkan.version>
+        <java.version>9</java.version>
     </properties>
 
     <build>
@@ -25,6 +25,7 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <release>${java.version}</release>
                 </configuration>
             </plugin>
             <plugin>

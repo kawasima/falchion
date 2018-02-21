@@ -4,9 +4,9 @@ package net.unit8.falchion;
  * @author kawasima
  */
 public class JvmResult {
-    private String id;
-    private int exitStatus;
-    private long pid;
+    private final String id;
+    private final int exitStatus;
+    private final long pid;
 
     public JvmResult(String id, long pid, int exitStatus) {
         this.id = id;

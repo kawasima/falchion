@@ -32,11 +32,11 @@ public class ApiServer {
         ShowJvmHandler showJvmHandler = new ShowJvmHandler(container);
 
         WebRouter<HttpHandler> router = new WebRouter<>();
-        router.get("/jvms", listJvmHandler::handle);
-        router.get("/jvm/{id}", showJvmHandler::handle);
-        router.post("/jvm/{pid}/ready", readyJvmHandler::handle);
-        router.post("/container/refresh", refreshContainerHandler::handle);
-        router.post("/container/refresh/{version}", refreshContainerHandler::handle);
+        router.get("/jvms", listJvmHandler);
+        router.get("/jvm/{id}", showJvmHandler);
+        router.post("/jvm/{pid}/ready", readyJvmHandler);
+        router.post("/container/refresh", refreshContainerHandler);
+        router.post("/container/refresh/{version}", refreshContainerHandler);
 
         executor = Executors.newFixedThreadPool(20);
         try {

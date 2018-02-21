@@ -37,9 +37,7 @@ public class MinGcTime implements Evaluator {
     }
 
     public JvmProcess evaluate(Collection<JvmProcess> processes) {
-        return processes.stream()
-                .sorted(Comparator.comparing(p -> score(p.getMonitorStats())))
-                .findFirst()
+        return processes.stream().min(Comparator.comparing(p -> score(p.getMonitorStats())))
                 .orElse(null);
     }
 }

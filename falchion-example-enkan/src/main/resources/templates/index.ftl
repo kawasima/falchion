@@ -3,6 +3,6 @@
   <meta charset="utf-8"/>
 </head>
 <body>
-<p>Hello, everyone.</p>
+<p>${message}</p>
 </body>
 </html>

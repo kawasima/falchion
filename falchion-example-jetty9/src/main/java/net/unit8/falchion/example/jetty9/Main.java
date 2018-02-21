@@ -1,6 +1,6 @@
 package net.unit8.falchion.example.jetty9;
 
-import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.jmx.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import net.unit8.falchion.jetty9.ReusePortConnector;

@@ -18,7 +18,7 @@ public class ListJvmHandler extends AbstractApi {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        getContainer().getPool().getActiveProcesses().stream().forEach(p ->
+        getContainer().getPool().getActiveProcesses().forEach(p ->
                 arrayBuilder.add(Json.createObjectBuilder()
                         .add("id", p.getId())
                         .add("pid", p.getPid())));

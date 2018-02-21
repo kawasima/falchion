@@ -10,7 +10,7 @@ import java.util.stream.Stream;
  */
 public class AllStringCacheTest {
     private static final String CHARS = "0123456789ABCDEF";
-    Random rand = new Random();
+    final Random rand = new Random();
 
     private String randomString() {
         return rand.ints(0, CHARS.length())

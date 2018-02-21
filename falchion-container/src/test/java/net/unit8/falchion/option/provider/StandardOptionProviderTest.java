@@ -1,6 +1,8 @@
 package net.unit8.falchion.option.provider;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author kawasima
@@ -8,6 +10,7 @@ import org.junit.Test;
 public class StandardOptionProviderTest {
     @Test
     public void test() {
-        System.out.println(new StandardOptionProvider("-XX:MaxHeapFreeRatio=3", 0.0).getOptions());
+        assertThat(new StandardOptionProvider("-XX:MaxHeapFreeRatio=3", 0.0).getOptions())
+                .contains("-XX:MaxHeapFreeRatio=3");
     }
 }

@@ -23,24 +23,24 @@ public class JvmProcess implements Callable<JvmResult> {
 
     private static final DateTimeFormatter fmtIO = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
-    private String id;
+    private final String id;
     private long pid = -1;
-    private String mainClass;
+    private final String mainClass;
     private String classpath;
     private List<String> jvmOptions;
 
-    private ProcessBuilder processBuilder;
+    private final ProcessBuilder processBuilder;
     private transient Process process;
     private long startedAt;
-    private CompletableFuture<Void> ready;
+    private final CompletableFuture<Void> ready;
 
-    private Set<JvmMonitor> monitors;
+    private final Set<JvmMonitor> monitors;
 
-    private static String ID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";
+    private static final String ID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";
 
     private String generateId(int length) {
         return new Random().ints(0, ID_CHARS.length())
-                .mapToObj(i -> ID_CHARS.charAt(i))
+                .mapToObj(ID_CHARS::charAt)
                 .limit(length)
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                 .toString();
@@ -68,8 +68,7 @@ public class JvmProcess implements Callable<JvmResult> {
     @Override
     public JvmResult call() throws Exception {
         String javaHome = System.getProperty("java.home");
-        List<String> commandArgs = new ArrayList<>();
-        commandArgs.addAll(Arrays.asList(javaHome + "/bin/java", "-cp", classpath));
+        List<String> commandArgs = new ArrayList<>(Arrays.asList(javaHome + "/bin/java", "-cp", classpath));
         if (jvmOptions != null) {
             commandArgs.addAll(jvmOptions);
         }

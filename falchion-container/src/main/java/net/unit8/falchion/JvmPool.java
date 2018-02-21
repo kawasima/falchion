@@ -36,7 +36,7 @@ public class JvmPool {
         jvmCompletionService = new ExecutorCompletionService<>(jvmProcessService);
 
         completionMonitorService.submit(() -> {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Future<JvmResult> resultFuture = jvmCompletionService.take();
                     JvmResult result = resultFuture.get();
@@ -112,7 +112,7 @@ public class JvmPool {
 
     public JvmProcess getProcess(String id) {
         return Optional.ofNullable(processes.get(id))
-                .map(holder -> holder.getProcess())
+                .map(ProcessHolder::getProcess)
                 .orElse(null);
     }
 
@@ -132,16 +132,16 @@ public class JvmPool {
         private JvmProcess process;
         private Future<JvmResult> future;
 
-        public ProcessHolder(JvmProcess process, Future<JvmResult> future) {
+        ProcessHolder(JvmProcess process, Future<JvmResult> future) {
             this.process = process;
             this.future = future;
         }
 
-        public JvmProcess getProcess() {
+        JvmProcess getProcess() {
             return process;
         }
 
-        public Future<JvmResult> getFuture() {
+        Future<JvmResult> getFuture() {
             return future;
         }
     }

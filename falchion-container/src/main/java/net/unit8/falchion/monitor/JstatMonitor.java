@@ -30,6 +30,7 @@ public class JstatMonitor implements GcMonitor {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 try {
                     String line;
+                    reader.readLine(); // Skip a header line
                     while ((line = reader.readLine()) != null) {
                         stat = parser.parse(line);
                     }

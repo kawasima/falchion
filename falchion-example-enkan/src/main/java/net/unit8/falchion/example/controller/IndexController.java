@@ -10,6 +10,7 @@ public class IndexController {
     private TemplateEngine templateEngine;
 
     public HttpResponse index() {
-        return templateEngine.render("index");
+        return templateEngine.render("index",
+                "message", "Hellooooooooooooooooooo");
     }
 }
