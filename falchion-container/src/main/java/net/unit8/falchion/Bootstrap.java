@@ -96,6 +96,14 @@ public class Bootstrap {
         }
         ApiServer apiServer = new ApiServer(container, adminPort);
 
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOG.info("Shutdown hook triggered");
+            if (container.getPool() != null) {
+                container.getPool().shutdown();
+            }
+            apiServer.stop();
+        }));
+
         Signal.handle(TERM, signal -> {
             container.getPool().shutdown();
             apiServer.stop();

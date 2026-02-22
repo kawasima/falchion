@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,6 +25,7 @@ public class JvmPool {
     private ExecutorService jvmProcessService;
     private ExecutorCompletionService<JvmResult> jvmCompletionService;
 
+    private final AtomicBoolean shutdownCalled = new AtomicBoolean(false);
     private Map<String, ProcessHolder> processes = new ConcurrentHashMap<>();
     private String classpath;
 
@@ -99,7 +101,16 @@ public class JvmPool {
                 .collect(Collectors.toList());
     }
     public void shutdown() {
+        if (!shutdownCalled.compareAndSet(false, true)) {
+            return;
+        }
         LOG.info("Pool shutdown begin");
+
+        Stream.of(processSupplier)
+                .filter(AutoOptimizableProcessSupplier.class::isInstance)
+                .map(AutoOptimizableProcessSupplier.class::cast)
+                .forEach(AutoOptimizableProcessSupplier::printTuningSummary);
+
         jvmProcessService.shutdown();
         processes.values().forEach(p -> p.getFuture().cancel(true));
         completionMonitorService.shutdown();

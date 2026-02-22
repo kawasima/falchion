@@ -78,7 +78,7 @@ public class JvmProcess implements Callable<JvmResult> {
             process = processBuilder.start();
             startedAt = System.currentTimeMillis();
             pid = process.pid();
-            LOG.info("process started: id={}, pid={}", id, pid);
+            LOG.info("process started: id={}, pid={}, jvmOptions={}", id, pid, jvmOptions);
 
             //return new JvmResult(id, pid, process.waitFor());
             return new JvmResult(id, pid, process.onExit()
