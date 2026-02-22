@@ -75,12 +75,12 @@ public class MetricsJmxMonitor implements JvmMonitor {
 
     @Override
     public void stop() {
-        /*
-        try {
-            connector.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        if (connector != null) {
+            try {
+                connector.close();
+            } catch (IOException e) {
+                LOG.warn("Failed to close JMX connector", e);
+            }
         }
-        */
     }
 }

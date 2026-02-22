@@ -2,6 +2,7 @@ package net.unit8.falchion.supplier;
 
 import net.unit8.falchion.JvmProcess;
 import net.unit8.falchion.monitor.MonitorSupplier;
+import net.unit8.falchion.option.GcAlgorithm;
 import net.unit8.falchion.option.provider.StandardOptionProvider;
 
 import java.io.File;
@@ -26,6 +27,10 @@ public class StandardProcessSupplier implements Supplier<JvmProcess> {
         this.logDir = logDir;
         this.monitorSuppliers = monitorSuppliers;
         standardOptionProvider = new StandardOptionProvider(javaOpts, 0.0);
+    }
+
+    public void setGcAlgorithm(GcAlgorithm gcAlgorithm) {
+        standardOptionProvider.setGcAlgorithm(gcAlgorithm);
     }
 
     @Override

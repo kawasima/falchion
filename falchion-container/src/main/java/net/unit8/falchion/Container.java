@@ -1,9 +1,12 @@
 package net.unit8.falchion;
 
 import net.unit8.falchion.evaluator.Evaluator;
+import net.unit8.falchion.health.HealthChecker;
 import net.unit8.falchion.monitor.MonitorSupplier;
+import net.unit8.falchion.option.GcAlgorithm;
 import net.unit8.falchion.supplier.AutoOptimizableProcessSupplier;
 import net.unit8.falchion.supplier.StandardProcessSupplier;
+import net.unit8.falchion.webhook.WebhookNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +41,17 @@ public class Container {
     private Evaluator evaluator;
     private String javaOpts;
     private String basedir;
+    private double variance = 0.1;
+    private String healthCheckPath;
+    private int appPort = 8080;
+    private long healthCheckInterval = 30;
+    private String gcAlgorithm;
+    private WebhookNotifier webhookNotifier;
+    private String drainPath;
+    private long drainTimeout = 30;
 
     private ScheduledExecutorService autoRefreshTimer;
+    private HealthChecker healthChecker;
 
     private Set<MonitorSupplier> monitorSuppliers;
 
@@ -72,14 +84,37 @@ public class Container {
      * @param classpath the classpath is applied for a child process
      */
     public void start(final String mainClass, String classpath) {
-        Supplier<JvmProcess> processSupplier = new StandardProcessSupplier(
+        StandardProcessSupplier stdSupplier = new StandardProcessSupplier(
                 mainClass, classpath, javaOpts, logDir, monitorSuppliers);
+        if (gcAlgorithm != null) {
+            stdSupplier.setGcAlgorithm(GcAlgorithm.valueOf(gcAlgorithm));
+        }
+        Supplier<JvmProcess> processSupplier = stdSupplier;
         if (autoTuning) {
-            LOG.info("Auto tuning setup using evaluator {}", evaluator);
-            processSupplier = new AutoOptimizableProcessSupplier(processSupplier, evaluator);
+            boolean autoSelectGc = (gcAlgorithm == null);
+            LOG.info("Auto tuning setup using evaluator {}, autoSelectGc={}", evaluator, autoSelectGc);
+            processSupplier = new AutoOptimizableProcessSupplier(processSupplier, evaluator, variance, autoSelectGc);
+        }
+        if (gcAlgorithm != null) {
+            LOG.info("GC algorithm fixed to {}", gcAlgorithm);
         }
         pool = new JvmPool(poolSize, processSupplier);
+        pool.setWebhookNotifier(webhookNotifier);
+        if (drainPath != null) {
+            pool.setDrainConfig(drainPath, appPort, drainTimeout);
+        }
         pool.fill();
+        if (healthCheckPath != null) {
+            healthChecker = new HealthChecker(healthCheckPath, appPort, healthCheckInterval,
+                    pool::getActiveProcesses, process -> {
+                try {
+                    process.kill();
+                } catch (IOException e) {
+                    LOG.warn("Failed to kill unhealthy process id={}", process.getId(), e);
+                }
+            });
+            healthChecker.start();
+        }
         if (lifetime > 0) {
             autoRefreshTimer = Executors.newSingleThreadScheduledExecutor();
             autoRefreshTimer.scheduleAtFixedRate(() -> {
@@ -169,6 +204,50 @@ public class Container {
 
     public void setEvaluator(Evaluator evaluator) {
         this.evaluator = evaluator;
+    }
+
+    public void setVariance(double variance) {
+        this.variance = variance;
+    }
+
+    public double getVariance() {
+        return variance;
+    }
+
+    public void setHealthCheckPath(String healthCheckPath) {
+        this.healthCheckPath = healthCheckPath;
+    }
+
+    public void setAppPort(int appPort) {
+        this.appPort = appPort;
+    }
+
+    public void setHealthCheckInterval(long healthCheckInterval) {
+        this.healthCheckInterval = healthCheckInterval;
+    }
+
+    public HealthChecker getHealthChecker() {
+        return healthChecker;
+    }
+
+    public int getAppPort() {
+        return appPort;
+    }
+
+    public void setWebhookNotifier(WebhookNotifier webhookNotifier) {
+        this.webhookNotifier = webhookNotifier;
+    }
+
+    public void setDrainPath(String drainPath) {
+        this.drainPath = drainPath;
+    }
+
+    public void setDrainTimeout(long drainTimeout) {
+        this.drainTimeout = drainTimeout;
+    }
+
+    public void setGcAlgorithm(String gcAlgorithm) {
+        this.gcAlgorithm = gcAlgorithm;
     }
 
     public void setBasedir(String basedir) {

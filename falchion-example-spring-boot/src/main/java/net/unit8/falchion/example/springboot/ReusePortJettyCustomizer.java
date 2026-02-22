@@ -1,6 +1,6 @@
 package net.unit8.falchion.example.springboot;
 
-import net.unit8.falchion.jetty9.ReusePortConnector;
+import net.unit8.falchion.jetty.ReusePortConnector;
 import org.eclipse.jetty.server.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.embedded.jetty.JettyServerCustomizer;

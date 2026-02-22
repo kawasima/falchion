@@ -10,8 +10,8 @@
 
     <modules>
         <module>falchion-container</module>
-        <module>falchion-example-jetty9</module>
+        <module>falchion-example-jetty</module>
         <module>falchion-example-spring-boot</module>
-        <module>falchion-jetty9-connector</module>
+        <module>falchion-jetty-connector</module>
     </modules>
 </project>

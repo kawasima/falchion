@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpServer;
 import me.geso.routes.RoutingResult;
 import me.geso.routes.WebRouter;
 import net.unit8.falchion.api.ListJvmHandler;
+import net.unit8.falchion.api.MetricsHandler;
 import net.unit8.falchion.api.ReadyJvmHandler;
 import net.unit8.falchion.api.RefreshContainerHandler;
 import net.unit8.falchion.api.ShowJvmHandler;
@@ -30,10 +31,12 @@ public class ApiServer {
         RefreshContainerHandler refreshContainerHandler = new RefreshContainerHandler(container);
         ReadyJvmHandler readyJvmHandler = new ReadyJvmHandler(container);
         ShowJvmHandler showJvmHandler = new ShowJvmHandler(container);
+        MetricsHandler metricsHandler = new MetricsHandler(container);
 
         WebRouter<HttpHandler> router = new WebRouter<>();
         router.get("/jvms", listJvmHandler);
         router.get("/jvm/{id}", showJvmHandler);
+        router.get("/metrics", metricsHandler);
         router.post("/jvm/{pid}/ready", readyJvmHandler);
         router.post("/container/refresh", refreshContainerHandler);
         router.post("/container/refresh/{version}", refreshContainerHandler);

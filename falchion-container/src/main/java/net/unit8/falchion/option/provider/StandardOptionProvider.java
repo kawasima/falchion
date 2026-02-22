@@ -1,5 +1,6 @@
 package net.unit8.falchion.option.provider;
 
+import net.unit8.falchion.option.GcAlgorithm;
 import net.unit8.falchion.option.JvmType;
 import net.unit8.falchion.option.sampler.LongSampler;
 
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
  */
 public class StandardOptionProvider implements OptionProvider {
     private JvmType jvmType = JvmType.SERVER;
+    private GcAlgorithm gcAlgorithm = GcAlgorithm.PARALLEL;
     private LongSampler initialHeap;
     private LongSampler maxHeap;
     private LongSampler maxHeapFreeRatio;
@@ -63,7 +65,7 @@ public class StandardOptionProvider implements OptionProvider {
         List<String> options = new ArrayList<>();
         options.add(jvmType.getOptionValue());
         options.add("-XX:+StartAttachListener");
-        options.add("-XX:+UseParallelGC");
+        options.add(gcAlgorithm.getOption());
 
         Long maxHeapFreeRatioValue = null;
 
@@ -91,6 +93,10 @@ public class StandardOptionProvider implements OptionProvider {
         if (survivorRatio != null)
             options.add("-XX:SurvivorRatio=" + survivorRatio.getValue());
         return options;
+    }
+
+    public void setGcAlgorithm(GcAlgorithm gcAlgorithm) {
+        this.gcAlgorithm = gcAlgorithm;
     }
 
     private static class StandardOption {
